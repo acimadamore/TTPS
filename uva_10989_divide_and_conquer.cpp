@@ -14,13 +14,15 @@ int stoer_wagner_it(int n){
   int best_min_cut = INT_MAX;
   int cut_of_the_phase, s, t, z;
 
-  // ninguno esta mergeado salvo el inicial
+  // El único vertice mergeado es el inicial
   memset(merged, false, sizeof(merged));
   merged[0] = true; 
 
   for(int phase=1; phase < n; phase++){
-    // MINUMUM CUT PHASE 
-    // si no fue mergeado tengo que marcarlo como false en A e iniciar los pesos adyacentes
+    
+    // MINUMUM CUT PHASE - BEGIN
+
+    // Si un vertice no fue mergeado a un tengo que marcar que no pertenece a A e inicializar la distancia desde el inicial
     A[0] = true;
     for(int i=1; i < n; i++){
       if(!merged[i]){
@@ -29,20 +31,22 @@ int stoer_wagner_it(int n){
       }
     }
   
-    // Necesito (V - 1(porque ya tengo [0])- el numero de mergeados) iteraciones para que A = V
+    // (V - 1(porque ya tengo [0]) - el numero de mergeados) iteraciones para que A = V
     for(int i=n-phase-1; i >= 0; i--){
   
       z = -1;
   
-      //busco z
+      // Buscar z tal que no pertenece a A y es el que tiene mas peso adyacente a A
       for(int j=1; j < n; j++)
         if(!A[j] && ( z == -1 || A_adjacents_weights[j] > A_adjacents_weights[z]))
           z = t = j;
   
-      //agrego z a A
+      // Agregar z a A
       A[z] = true;
   
-      // actualizo los pesos adyacentes a A porque este crecio y me guardo el anterior, solo tiene sentido sino es el ultimo
+      // Si no es la última iteracion debo actualizar los pesos de todos los adyacentes a A porque este creció
+      // y guardarme en s el z recién agregado a A para hacer la combinación de los dos últimos vertices agregados a A
+      // al finalizar todas las iteraciones 
       if(i > 0){
         s = t;
   
@@ -52,16 +56,20 @@ int stoer_wagner_it(int n){
       }
     }
   
-    // Termino todo tengo que mergear s y t
+    // Merge de s y t, los dos ultimos vertices agregados a A y actualización de las aristas de estos
     for(int i=0; i < n; i++){
       map[i][s] += map[t][i];
       map[s][i] += map[t][i];
     }
     merged[t] = true;
+    
+    // El "cut of the phase" corresponde corresponde al peso de A al último vertice agregado t
     cut_of_the_phase = A_adjacents_weights[t];
-    // MINUMUM CUT PHASE END
+    
 
+    // MINUMUM CUT PHASE - END
 
+    // El minimo corte es el menor "cut of the phase" de todas las fases.
     if(best_min_cut > cut_of_the_phase){
       best_min_cut = cut_of_the_phase;
     }
